@@ -19,7 +19,7 @@ const requiresSecure = (req, res, next) => {
   return next();
 };
 
-const bypassSecure = (_req, res, next) => {
+const bypassSecure = (req, res, next) => {
   next();
 };
 
