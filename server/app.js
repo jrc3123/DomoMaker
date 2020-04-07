@@ -11,6 +11,7 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session);
 const url = require('url');
 const redis = require('redis');
+const csrf = require('csurf');
 
 const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
@@ -66,7 +67,19 @@ app.use(session({
 app.engine('handlebars', expressHandlebars({ defaultLayout: 'main' }));
 app.set('view engine', 'handlebars');
 app.set('views', `${__dirname}/../views`);
+app.disable('x-powered-by');
 app.use(cookieParser());
+
+// csurf must come after app.use(cookieParser());
+// and app.use(session({....})); should come before the router
+app.use(csrf());
+app.use((err, req, res, next) => {
+  // will only continue if the csurf token matches
+  if (err.code !== 'EBADCSRFTOKEN') return next(err);
+
+  console.log('Missing CSRF token');
+  return false;
+});
 
 app.use(session({
   key: 'sessionid',
